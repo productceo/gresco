@@ -1,0 +1,3 @@
+[submodule "edge-connect"]
+	path = edge-connect
+	url = https://github.com/knazeri/edge-connect
