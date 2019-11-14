@@ -1,6 +1,8 @@
 launch_jupyter.sh
 
-edge-connect/datasets
+datasets
 GP-GAN/datasets
+edge-connect/datasets
 
+__pycache__
 .ipynb_checkpoints
