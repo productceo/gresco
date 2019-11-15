@@ -1,12 +1,13 @@
 from h5py import File
 
 from os import listdir
-from os.path import isfile, join
+from os.path import join
 
 from object_overlay import sample_object_overlay
 from object_masking import sample_object_masking
 
 from object_masking import train_object_masking
+
 
 class Gresco():
     def __init__(self, scene_images_dir, object_images_dir, dataset):
@@ -20,7 +21,7 @@ class Gresco():
             ]
 
     def generate_images_r(self, image, question, answer):
-        (object_mask, object_without_scene) = sample_object_masking(image, question, answer)
+        (object_mask, object_without_scene, image_with_mask, bounding_box) = sample_object_masking(image, question, answer)
         for scene_image in self.scene_images:
             image_r = sample_object_overlay(object_without_scene, scene_image, object_mask)
 
@@ -31,6 +32,10 @@ class Gresco():
             question = self.dataset['questions'][index]
             answer = self.dataset['answers'][index]
             self.generate_images_r(image, question, answer)
+
+    def test_sample_object_masking(self, image, question, answer):
+        object_mask, object_without_scene, image_with_mask, bounding_box = sample_object_masking(image, question, answer)
+        return (object_mask, object_without_scene, image_with_mask, bounding_box)
 
     def train(self):
         train_object_masking()
