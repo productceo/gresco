@@ -1,3 +1,6 @@
 [submodule "edge-connect"]
 	path = edge-connect
 	url = https://github.com/knazeri/edge-connect
+[submodule "GP-GAN"]
+	path = GP-GAN
+	url = https://github.com/wuhuikai/GP-GAN

@@ -1,0 +1,16 @@
+__pycache__
+
+.vscode
+.vector_cache
+.ipynb_checkpoints
+
+launch_jupyter.sh
+
+datasets
+GP-GAN/datasets
+edge-connect/datasets
+segmentationVQA/data
+segmentationVQA/weights
+
+*.ipynb
+env
