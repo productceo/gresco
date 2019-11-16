@@ -3,10 +3,12 @@ from h5py import File
 from os import listdir
 from os.path import join
 
-from object_overlay import sample_object_overlay
 from object_masking import sample_object_masking
+from object_removal import sample_object_removal
+from object_overlay import sample_object_overlay
 
 from object_masking import train_object_masking
+from object_removal import train_object_removal
 
 
 class Gresco():
@@ -33,9 +35,10 @@ class Gresco():
             answer = self.dataset['answers'][index]
             self.generate_images_r(image, question, answer)
 
-    def test_sample_object_masking(self, image, question, answer):
+    def test_sample_object_removal(self, image, question, answer):
         object_mask, object_without_scene, image_with_mask, bounding_box = sample_object_masking(image, question, answer)
-        return (object_mask, object_without_scene, image_with_mask, bounding_box)
+        scene_without_object = sample_object_removal(image_with_mask, object_mask)
+        return scene_without_object, image_with_mask
 
     def train(self):
         train_object_masking()
