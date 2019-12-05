@@ -66,4 +66,4 @@ costsensitive==0.1.1
 joblib==0.13.2
 matplotlib==2.2.4
 twython==3.7.0
-scikit-image==0.14.5
+scikit-image==0.15.0

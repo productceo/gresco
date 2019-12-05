@@ -1,4 +1,5 @@
-cd GP-GAN
+mv GP-GAN GP_GAN
+cd GP_GAN
 pip install -r requirements/test/requirements.txt
 pip install git+git://github.com/mila-udem/fuel.git@stable
 

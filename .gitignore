@@ -7,10 +7,11 @@ __pycache__
 launch_jupyter.sh
 
 datasets
-GP-GAN/datasets
-edge-connect/datasets
 segmentationVQA/data
 segmentationVQA/weights
+edge_connect/datasets
+GP_GAN/datasets
+GP_GAN/images
+GP_GAN/mask
 
-*.ipynb
 env
