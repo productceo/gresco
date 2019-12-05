@@ -73,7 +73,6 @@ def sample_segmentation_VQA(image, question, answer):
     Returns:
         predicted answer.
     """
-
     segvqa, vocab = load_seg_model(
         "segmentationVQA/weights/segvqa1/segvqa-52.pkl",
         vocab_path='segmentationVQA/data/vocab_vqa_multi.json'
@@ -126,5 +125,6 @@ def sample_segmentation_VQA(image, question, answer):
     segmentation = prediction.data.cpu().numpy().squeeze()
     segmentation[segmentation > 0] = 1
     object_without_scene = image_test.data.cpu().numpy().squeeze() * segmentation
-    image_with_mask = image_test.data.cpu().numpy().squeeze() - object_without_scene
-    return segmentation, object_without_scene, image_with_mask
+    original_image = image_test.data.cpu().numpy().squeeze()
+    image_with_mask = original_image + (segmentation*255 - object_without_scene)
+    return segmentation, object_without_scene, image_with_mask, original_image

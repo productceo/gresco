@@ -51,24 +51,30 @@ def prepare_directories(image, object_mask):
         os.system("rm -rf {}".format(folder))
         os.system("mkdir {}".format(folder))
     image = image.transpose((1, 2, 0))
-    image = np.pad(image, ((0, 32), (0, 32), (0, 0)), 'constant')
+    image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_AREA)
     object_mask = np.expand_dims(object_mask, axis=2)
-    object_mask = np.pad(object_mask, ((0, 32), (0, 32), (0, 0)), 'constant')
+    object_mask = object_mask.reshape((224, 224)).astype('float32')
+    object_mask = cv2.resize(object_mask, (256, 256), interpolation=cv2.INTER_AREA)
     image *= 255
     image = image.astype(np.float32)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     object_mask *= 255
     object_mask = object_mask.astype(np.float32)
-    cv2.imwrite('{}/temp.jpg'.format(INPUT_FOLDER), image)
-    cv2.imwrite('{}/temp.jpg'.format(MASK_FOLDER), object_mask)
+    cv2.imwrite('{}/temp.png'.format(INPUT_FOLDER), image)
+    cv2.imwrite('{}/temp.png'.format(MASK_FOLDER), object_mask)
 
 
 def sample_object_removal(image, object_mask):
     prepare_directories(image, object_mask)
-    config = get_config()
-    model = get_model(config)
-    model.load()
-    model.test()
+    # config = get_config()
+    # model = get_model(config)
+    # model.load()
+    # model.test()
+    os.system("python edge_connect/test.py \
+        --checkpoints edge_connect/checkpoints/places2 \
+        --input {} \
+        --mask {} \
+        --output {}".format(INPUT_FOLDER, MASK_FOLDER, OUTPUT_FOLDER))
     output = os.listdir(OUTPUT_FOLDER)[0]
     return Image.open("{}/{}".format(OUTPUT_FOLDER, output))
 
