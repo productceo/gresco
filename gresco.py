@@ -1,4 +1,5 @@
 from h5py import File
+from PIL import Image
 
 from os import listdir
 from os.path import join
@@ -35,10 +36,12 @@ class Gresco():
             answer = self.dataset['answers'][index]
             self.generate_images_r(image, question, answer)
 
-    def test_sample_object_removal(self, image, question, answer):
-        object_mask, object_without_scene, image_with_mask, bounding_box = sample_object_masking(image, question, answer)
-        scene_without_object = sample_object_removal(image_with_mask, object_mask)
-        return scene_without_object, image_with_mask
+    def test_sample_object_overlay(self, image, question, answer, object_image):
+        object_image = Image.open(object_image)
+        object_mask, object_without_scene, image_with_mask, bounding_box, original_image = sample_object_masking(image, question, answer)
+        scene_without_object = sample_object_removal(original_image, object_mask)
+        scene_with_object = sample_object_overlay(object_image, scene_without_object, bounding_box)
+        return scene_without_object, image_with_mask, scene_with_object
 
     def train(self):
         train_object_masking()
