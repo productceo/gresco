@@ -5,6 +5,8 @@ from segmentationVQA import sample_segmentation_VQA
 
 def get_bounding_box(object_mask):
     i, j = np.where(object_mask == 1)
+    i = np.sort(i)
+    j = np.sort(j)
     if len(i) == 0:
         return (0, 0, 0, 0)
     else:
@@ -16,9 +18,9 @@ def get_bounding_box(object_mask):
 
 
 def sample_object_masking(image, question, answer):
-    object_mask, object_without_scene, image_with_mask = sample_segmentation_VQA(image, question, answer)
+    object_mask, object_without_scene, image_with_mask, original_image = sample_segmentation_VQA(image, question, answer)
     bounding_box = get_bounding_box(object_mask)
-    return (object_mask, object_without_scene, image_with_mask, bounding_box)
+    return (object_mask, object_without_scene, image_with_mask, bounding_box, original_image)
 
 
 def train_object_masking():
