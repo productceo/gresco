@@ -22,7 +22,12 @@ def sample_object_overlay(object_image, scene_image, bounding_box, threshold=50)
 
     object_image = transform_bbox(object_image)
     object_image = torch.Tensor(np.asarray(object_image, dtype='uint8'))
+    if len(object_image.shape) == 2:
+        object_image = object_image.unsqueeze(2)
+    elif object_image.shape[2] > 3:
+        object_image = object_image[:,:,:3]
     object_mask = object_image > 0
+    
     scene_image[y:y+h, x:x+w, :] = scene_image[y:y+h, x:x+w, :] - scene_image[y:y+h, x:x+w, :] * object_mask + object_image
     scene_image = Image.fromarray(scene_image.numpy().astype(np.uint8()))
     return transform_img(scene_image)

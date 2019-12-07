@@ -89,7 +89,7 @@ def sample_segmentation_VQA(image, question, answer):
                              std=[0.229, 0.224, 0.225])])
 
     # Prepare Image
-    image = Image.open(image).convert("RGB")
+    image = image.convert("RGB")
     image_test = transform_im(image).unsqueeze(0)
     image_tensor = transform(image).unsqueeze(0)
 
@@ -124,7 +124,8 @@ def sample_segmentation_VQA(image, question, answer):
     _, prediction = logits[0].squeeze(0).max(0)
     segmentation = prediction.data.cpu().numpy().squeeze()
     segmentation[segmentation > 0] = 1
-    object_without_scene = image_test.data.cpu().numpy().squeeze() * segmentation
+    # object_without_scene = (image_test.data.cpu().numpy().squeeze() * segmentation)
     original_image = image_test.data.cpu().numpy().squeeze()
+    object_without_scene = original_image * segmentation * 255
     image_with_mask = original_image + (segmentation*255 - object_without_scene)
     return segmentation, object_without_scene, image_with_mask, original_image

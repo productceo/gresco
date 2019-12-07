@@ -1,6 +1,15 @@
 # Gresco: Generalizability Robustness Extensibility Score
 Measuring the Generalizability, Robustness, and Extensibility of Computer Vision Models.
 
+## Installation
+* Python 3.5
+* PyTorch 1.0
+* PyTorch Vision 0.4.1
+
+## Datasets
+* Object bank: Open Images
+* Scene bank: MIT Places
+
 ## Motivation
 In the status quo, computer vision models report accuracy on test sets that are sampled from the same dataset as the train sets. However, these models in deployment encounter an environment with a higher variety of objects and scenes than in the datasets. This work proposes a method of transforming test images to test for generalizability, robustness, and elasticity of computer vision models to better predict the performance of these models deployed in unseen environments. 
 
