@@ -13,5 +13,4 @@ git submodule init
 git submodule update
 
 printf "Installing nltk...\n\n"
-python -c "import nltk; nltk.download('punkt');"
-
+python -c "import nltk; nltk.download('punkt'); nltk.download('wordnet');"

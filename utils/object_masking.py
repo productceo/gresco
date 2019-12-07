@@ -1,13 +1,10 @@
 import os
 import numpy as np
 from segmentationVQA import sample_segmentation_VQA
-from PIL import Image
 
 
 def get_bounding_box(object_mask):
     i, j = np.where(object_mask == 1)
-    i = np.sort(i)
-    j = np.sort(j)
     if len(i) == 0:
         return (0, 0, 0, 0)
     else:
@@ -19,14 +16,9 @@ def get_bounding_box(object_mask):
 
 
 def sample_object_masking(image, question, answer):
-    object_mask, object_without_scene, image_with_mask, original_image = sample_segmentation_VQA(image, question, answer)
-    for i in range(object_without_scene.shape[0]):
-        for j in range(object_without_scene.shape[1]):
-            if object_without_scene[i][j][1] != 0:
-                print(object_without_scene[i][j][1])
-    object_without_scene = Image.fromarray(np.uint8(object_without_scene.transpose((1, 2, 0))))
+    object_mask, object_without_scene, image_with_mask = sample_segmentation_VQA(image, question, answer)
     bounding_box = get_bounding_box(object_mask)
-    return (object_mask, object_without_scene, image_with_mask, bounding_box, original_image)
+    return (object_mask, object_without_scene, image_with_mask, bounding_box)
 
 
 def train_object_masking():
