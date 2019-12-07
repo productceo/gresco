@@ -168,7 +168,7 @@ class Gresco():
                 image_index = self.last_index
                 filename = "{}/gre_{}.jpg".format(filepath, str(image_index).zfill(8))
                 scene_with_object.save(filename)
-                images_e.append((image_index, question, answer))
+                images_e.append((image_index, question, new_object_class))
 
         return images_e
 
