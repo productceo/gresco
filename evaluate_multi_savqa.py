@@ -86,23 +86,23 @@ def main(args):
     logfile = os.path.join(model_dir, 'eval.log')
     logging.basicConfig(filename=logfile, level=logging.INFO, format=log_format)
     logging.getLogger().addHandler(logging.StreamHandler())
-    logging.info(json.dumps(args.__dict__))
+    # logging.info(json.dumps(args.__dict__))
 
     # Load vocabulary wrapper.
     vocab = load_vocab(params.vocab_path)
     vocab.top_answers = json.load(open(args.top_answers))
 
     # Build data loader.
-    logging.info("Building data loader...")
+    # logging.info("Building data loader...")
     data_loader = get_vqa_loader(args.dataset,
                                  args.batch_size,
                                  shuffle=False,
                                  num_workers=args.num_workers,
                                  max_examples=args.max_examples)
-    logging.info("Done")
+    # logging.info("Done")
 
     # Build the models
-    logging.info("Loading model.")
+    # logging.info("Loading model.")
     vqa = MultiSAVQAModel(len(vocab), params.max_length, params.hidden_size,
                           params.vocab_embed_size,
                           num_layers=params.num_layers,
@@ -112,11 +112,11 @@ def main(args):
                           att_ff_size=params.att_ff_size)
     vqa.load_state_dict(torch.load(args.model_path))
     vqa.eval()
-    logging.info("Done")
+    # logging.info("Done")
 
     # Setup GPUs.
     if torch.cuda.is_available():
-        logging.info("Using available GPU...")
+        # logging.info("Using available GPU...")
         vqa.cuda()
 
     scores, gts, preds = evaluate(vqa, data_loader, vocab, args, params)
@@ -159,10 +159,10 @@ if __name__ == '__main__':
 
     # Data parameters.
     parser.add_argument('--dataset', type=str,
-                        default='/scr/junwon/gresco/datasets/release/val_g.hdf5',
+                        default='/data/junwon/gresco/datasets/release/val_g.hdf5',
                         help='path for val hdf5 file')
     parser.add_argument('--top-answers', type=str,
-                        default='/scr/junwon/gresco/datasets/input/vqa_top_answers.json',
+                        default='/data/junwon/gresco/datasets/input/vqa_top_answers.json',
                         help='Path for top answers.')
 
     args = parser.parse_args()

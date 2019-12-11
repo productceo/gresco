@@ -148,32 +148,32 @@ if __name__=='__main__':
 
     # VQA dataset
     parser.add_argument('--train-annotations', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability/train_annotations.json')
+                        default='/data/junwon/gresco/datasets/output/generalizability/train_annotations.json')
     parser.add_argument('--val-annotations', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability/val_annotations.json')
+                        default='/data/junwon/gresco/datasets/output/generalizability/val_annotations.json')
     parser.add_argument('--train-questions', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability/train_questions.json')
+                        default='/data/junwon/gresco/datasets/output/generalizability/train_questions.json')
     parser.add_argument('--val-questions', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability/val_questions.json')
+                        default='/data/junwon/gresco/datasets/output/generalizability/val_questions.json')
 
     # MSCOCO images.
     parser.add_argument('--train-images', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability')
+                        default='/data/junwon/gresco/datasets/output/generalizability')
     parser.add_argument('--val-images', type=str,
-                        default='/scr/junwon/gresco/datasets/output/generalizability')
+                        default='/data/junwon/gresco/datasets/output/generalizability')
 
     # HDF5 outputs.
     parser.add_argument('--top-answers', type=str,
-                        default='/scr/junwon/gresco/datasets/input/vqa_top_answers.json',
+                        default='/data/junwon/gresco/datasets/input/vqa_top_answers.json',
                         help='Path for top answers.')
     parser.add_argument('--vocab', type=str,
-                        default='/scr/junwon/gresco/datasets/input/vocab_vqa_multi.json',
+                        default='/data/junwon/gresco/datasets/input/vocab_vqa_multi.json',
                         help='Path for vocabulary wrapper.')
     parser.add_argument('--train-output', type=str,
-                        default='/scr/junwon/gresco/datasets/release/train_g.hdf5',
+                        default='/data/junwon/gresco/datasets/release/train_g.hdf5',
                         help='Training output.')
     parser.add_argument('--val-output', type=str,
-                        default='/scr/junwon/gresco/datasets/release/val_g.hdf5',
+                        default='/data/junwon/gresco/datasets/release/val_g.hdf5',
                         help='Validation output.')
     args = parser.parse_args()
 
