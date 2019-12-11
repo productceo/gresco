@@ -29,7 +29,7 @@ docutils==0.15.2
 entrypoints==0.3
 enum34==1.1.6
 fake-useragent==0.1.10
-Flask==0.12.1
+Flask==1.0
 Flask-Admin==1.5.0
 Flask-BasicAuth==0.2.0
 fs==2.0.23
