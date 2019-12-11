@@ -8,6 +8,7 @@ import numpy as np
 from h5py import File
 from PIL import Image
 
+import argparse
 import progressbar
 
 from os import listdir
@@ -34,7 +35,7 @@ class Gresco():
         self.answers = self.dataset['answers']
         self.image_indices = self.dataset['image_indices']
         self.images = self.dataset['images']
-        self.image_masks = self.dataset['image_mask']
+        # self.dataset_size = 100000
         self.dataset_size = self.questions.shape[0]
         self.object_images = dict()
         self.object_classes = []
@@ -57,6 +58,7 @@ class Gresco():
 
 
     def generate_images_g(self, image, question, answer, object_class):
+        samples_per_class = 3
         images_g = []
         object_masking_result = sample_object_masking(
                                                       image, 
@@ -69,16 +71,19 @@ class Gresco():
         bounding_box = object_masking_result[3]
         original_image = object_masking_result[4]
 
+        if bounding_box[2] == 0 or bounding_box[3] == 0:
+            return images_g
+
         scene_without_object = sample_object_removal(
                                                      original_image, 
                                                      object_mask
                                                      )
         object_images = self.object_images[object_class]
         random.shuffle(object_images)
-        count = 0
+        sample_count = 0
         for object_image in object_images:
-            if count == 3: break
-            count += 1
+            if sample_count == samples_per_class: break
+            sample_count += 1
             object_image = Image.open(object_image)
             scene_with_object = sample_object_overlay(
                                             object_image, 
@@ -96,6 +101,8 @@ class Gresco():
 
 
     def generate_images_r(self, image, question, answer, object_class):
+        samples_per_class = 3
+        sample_classes = 3
         images_r = []
         object_masking_result = sample_object_masking(
                                                       image, 
@@ -108,13 +115,21 @@ class Gresco():
         bounding_box = object_masking_result[3]
         original_image = object_masking_result[4]
 
-        for scene_class in self.scene_classes:
+        if bounding_box[2] == 0 or bounding_box[3] == 0:
+            return images_r
+        
+        scene_classes = self.scene_classes
+        random.shuffle(scene_classes)
+        sample_class_count = 0
+        for scene_class in scene_classes:
+            if sample_class_count == sample_classes: break
+            sample_class_count += 1
             scene_images = self.scene_images[scene_class]
             random.shuffle(scene_images)
-            count = 0
+            sample_count = 0
             for scene_image in scene_images:
-                if count == 3: break
-                count += 1
+                if sample_count == samples_per_class: break
+                sample_count += 1
                 scene_image = Image.open(scene_image)
                 scene_with_object = sample_object_overlay(
                                                 object_without_scene, 
@@ -132,6 +147,8 @@ class Gresco():
 
 
     def generate_images_e(self, image, question, answer, object_class):
+        samples_per_class = 3
+        sample_classes = 3
         images_e = []
         object_masking_result = sample_object_masking(
                                                       image, 
@@ -144,19 +161,27 @@ class Gresco():
         bounding_box = object_masking_result[3]
         original_image = object_masking_result[4]
 
+        if bounding_box[2] == 0 or bounding_box[3] == 0:
+            return images_e
+
         scene_without_object = sample_object_removal(
                                                      original_image, 
                                                      object_mask
                                                      )
 
-        for new_object_class in self.object_classes:
+        object_classes = self.object_classes
+        random.shuffle(object_classes)
+        sample_class_count = 0
+        for new_object_class in object_classes:
+            if sample_class_count == sample_classes: break
+            sample_class_count += 1
             if new_object_class == object_class: continue
             object_images = self.object_images[new_object_class]
             random.shuffle(object_images)
-            count = 0
+            sample_count = 0
             for object_image in object_images:
-                if count == 3: break
-                count += 1
+                if sample_count == samples_per_class: break
+                sample_count += 1
                 object_image = Image.open(object_image)
                 scene_with_object = sample_object_overlay(
                                                 object_image, 
@@ -174,16 +199,39 @@ class Gresco():
 
 
     def generate_dataset(self, start_index, end_index, gre_func, 
-                         q_filename, a_filename, success_message):
+                         q_filename, a_filename, message=None):
+        if message is not None: print(message)
         questions = dict()
         questions["questions"] = []
         annotations = dict()
         annotations["annotations"] = []
-        bar = progressbar.ProgressBar(maxval=self.dataset_size)
+        bar = progressbar.ProgressBar(maxval=end_index - start_index)
         bar.start()
-        for index in range(10):
-            bar.update(index)
+        count = 0
+        for index in range(start_index, end_index):
+            count += 1
+            bar.update(count)
             image, question, answer = self.get_dataset_item(index)
+
+            self.last_index += 1
+            image_index = self.last_index
+            image.save("datasets/output/generalizability/gre_{}.jpg".format(str(image_index).zfill(8)))
+            image.save("datasets/output/robustness/gre_{}.jpg".format(str(image_index).zfill(8)))
+            image.save("datasets/output/extensibility/gre_{}.jpg".format(str(image_index).zfill(8)))
+            questions["questions"].append({
+                'image_id': image_index,
+                'question': question,
+                'question_id': image_index
+            })
+            annotations["annotations"].append({
+                'image_id': image_index,
+                'question_type': 'object',
+                'multiple_choice_answer': answer,
+                'question_id': image_index,
+                'answer_type': 'object',
+                'answers': [{'answer': answer, 'answer_id': 1, 'answer_confidence': 'yes'}]
+            })
+
             object_class = self.lemmatizer.lemmatize(answer)
             if object_class in self.object_classes:
                 images_gre = gre_func(image, question, answer, object_class)
@@ -202,10 +250,9 @@ class Gresco():
                         'answer_type': 'object',
                         'answers': [{'answer': answer, 'answer_id': 1, 'answer_confidence': 'yes'}]
                     })
-                break
         json.dump(questions, open(q_filename, 'w'))
         json.dump(annotations, open(a_filename, 'w'))
-        print(success_message)
+
 
     def generate_dataset_g(self):
         train_val_cutoff = int(self.dataset_size * 0.8)
@@ -215,7 +262,7 @@ class Gresco():
                              self.generate_images_g,
                              "datasets/output/generalizability/train_questions.json",
                              "datasets/output/generalizability/train_annotations.json",
-                             "COMPLETE: Building Dataset G Train"
+                             "Preparing Dataset G Train\n"
                              )
         self.generate_dataset(
                              train_val_cutoff, 
@@ -223,7 +270,7 @@ class Gresco():
                              self.generate_images_g,
                              "datasets/output/generalizability/val_questions.json",
                              "datasets/output/generalizability/val_annotations.json",
-                             "COMPLETE: Building Dataset G Val"
+                             "Preparing Dataset G Val\n"
                              )
 
 
@@ -235,7 +282,7 @@ class Gresco():
                              self.generate_images_r,
                              "datasets/output/robustness/train_questions.json",
                              "datasets/output/robustness/train_annotations.json",
-                             "COMPLETE: Building Dataset R Train"
+                             "Preparing Dataset R Train\n"
                              )
         self.generate_dataset(
                              train_val_cutoff, 
@@ -243,7 +290,7 @@ class Gresco():
                              self.generate_images_r,
                              "datasets/output/robustness/val_questions.json",
                              "datasets/output/robustness/val_annotations.json",
-                             "COMPLETE: Building Dataset R Val"
+                             "Preparing Dataset R Val\n"
                              )
 
 
@@ -256,7 +303,7 @@ class Gresco():
                              self.generate_images_e,
                              "datasets/output/extensibility/train_questions.json",
                              "datasets/output/extensibility/train_annotations.json",
-                             "COMPLETE: Building Dataset E Train"
+                             "Preparing Dataset E Train\n"
                              )
         self.generate_dataset(
                              train_val_cutoff, 
@@ -264,7 +311,7 @@ class Gresco():
                              self.generate_images_e,
                              "datasets/output/extensibility/val_questions.json",
                              "datasets/output/extensibility/val_annotations.json",
-                             "COMPLETE: Building Dataset E Val"
+                             "Preparing Dataset E Val\n"
                              )
 
 
@@ -294,3 +341,26 @@ class Gresco():
 
     def train(self):
         train_object_masking()
+
+def main(args):
+    gresco = Gresco(
+        scene_images_dir = args.scene_images_dir,
+        object_images_dir = args.object_images_dir,
+        dataset = args.dataset,
+        vocab = args.vocab
+    )
+    gresco.generate_dataset_gre()
+
+if __name__=='__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--scene-images-dir', type=str,
+                        default='datasets/scenes')
+    parser.add_argument('--object-images-dir', type=str,
+                        default='datasets/objects')
+    parser.add_argument('--dataset', type=str,
+                        default='datasets/input/vqa_multi_dataset.hdf5')
+    parser.add_argument('--vocab', type=str,
+                        default='datasets/input/vocab_vqa_multi.json')
+    args = parser.parse_args()
+    main(args)
+    

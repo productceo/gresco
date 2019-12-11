@@ -1,26 +1,28 @@
-"""Contains model that uses Segmentation VQA.
+"""Contains model that uses Stacked Attention for VQA.
 """
 
-from segmentationVQA.models.EncoderCNNSeg import SpatialResnetEncoder
-from segmentationVQA.models.EncoderRNN import EncoderRNN
+from models.EncoderCNNSeg import SpatialResnetEncoder
+from models.EncoderRNN import EncoderRNN
 
 import numpy as np
 import sys
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 sys.path.append('..')
-from segmentationVQA.utils import process_lengths
+from utils import process_lengths
+
 
 
 class SEGModel(nn.Module):
-    """Segmentation sequence-to-sequence model.
+    """Stacked attention sequence-to-sequence model.
     """
 
     def __init__(self, vocab_size, max_len, hidden_size,
                  vocab_embed_size, sos_id, eos_id,
                  num_layers=1, rnn_cell='LSTM', bidirectional=False,
-                 input_dropout_p=0, dropout_p=0, answer_max_len=None,
+                 input_dropout_p=0, dropout_p=0, answer_max_len=None, 
                  embedding=None):
         """Constructor for VQAModel.
 
@@ -40,15 +42,15 @@ class SEGModel(nn.Module):
         """
         super(SEGModel, self).__init__()
         self.encoder_cnn = SpatialResnetEncoder(2)
-        self.encoder_rnn = EncoderRNN(vocab_size, max_len, hidden_size,
-                                      input_dropout_p=input_dropout_p,
-                                      dropout_p=dropout_p,
-                                      n_layers=num_layers,
-                                      bidirectional=bidirectional,
-                                      rnn_cell=rnn_cell,
-                                      vocab_embed_size=vocab_embed_size,
-                                      variable_lengths=True,
-                                      embedding=embedding)
+        self.encoder_rnn  = EncoderRNN(vocab_size, max_len, hidden_size,
+                                       input_dropout_p=input_dropout_p,
+                                       dropout_p=dropout_p,
+                                       n_layers=num_layers,
+                                       bidirectional=bidirectional,
+                                       rnn_cell=rnn_cell,
+                                       vocab_embed_size=vocab_embed_size,
+                                       variable_lengths=True,
+                                       embedding=embedding)
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.vocab_embed_size = vocab_embed_size
@@ -57,7 +59,8 @@ class SEGModel(nn.Module):
 
     def params_to_train(self):
         params = (list(self.encoder_rnn.parameters()) +
-                  list(self.encoder_cnn.fc.parameters()))
+                  list(self.encoder_cnn.fc.parameters()) )
+        # Don't train the embedding weights.
         params = filter(lambda p: p.requires_grad, params)
         return params
 
@@ -85,8 +88,8 @@ class SEGModel(nn.Module):
         features = self.encoder_cnn.resnet(images)
 
         # encoder_hidden is ((BIDIRECTIONAL x NUM_LAYERS) * N * HIDDEN_SIZE).
-        _, encoder_hidden_ans = self.encoder_rnn(answers, alengths, None)
-
+        _ , encoder_hidden_ans = self.encoder_rnn(answers, alengths, None)
+        
         if self.encoder_rnn.rnn_cell is nn.LSTM:
             encoder_hidden_ans = encoder_hidden_ans[0]
         encoder_hidden_ans = encoder_hidden_ans.transpose(0, 1).contiguous()
@@ -95,15 +98,15 @@ class SEGModel(nn.Module):
             encoder_hidden = torch.cat((encoder_hidden_ans[:, 0], encoder_hidden_ans[:, -1]), dim=1)
         else:
             encoder_hidden = encoder_hidden_ans[:, -1]
-
+        
         if questions is not None:
             alengths = process_lengths(questions)
             # Reorder based on length
-            sort_index = sorted(range(len(alengths)), key=lambda x: alengths[x].item(),
+            sort_index = sorted(range(len(alengths)), key=lambda x: alengths[x].item(), 
                                 reverse=True)
             questions = questions[sort_index]
             alengths = np.array(alengths)[sort_index].tolist()
-            _, encoder_hidden_qs = self.encoder_rnn(
+            _ , encoder_hidden_qs = self.encoder_rnn(
                     questions, alengths, None)
             if self.encoder_rnn.rnn_cell is nn.LSTM:
                 encoder_hidden_qs = encoder_hidden_qs[0]
@@ -113,23 +116,18 @@ class SEGModel(nn.Module):
                 encoder_hidden_qs = torch.cat((encoder_hidden_qs[:, 0], encoder_hidden_qs[:, -1]), dim=1)
             else:
                 encoder_hidden_qs = encoder_hidden_qs[:, -1]
-
+            
             # Reorder to match answer ordering
             ordering = [sort_index.index(i) for i in range(images.size(0))]
             encoder_hidden_qs = encoder_hidden_qs[ordering]
             encoder_hidden = torch.cat([encoder_hidden, encoder_hidden_qs], dim=1)
+        
 
         # Pass the features through the stacked attention network.
-        encoder_hidden = encoder_hidden.unsqueeze(2).unsqueeze(2).repeat(1, 1,
+        encoder_hidden = encoder_hidden.unsqueeze(2).unsqueeze(2).repeat(1, 1, 
                                                                          features.size(2),
                                                                          features.size(3))
         features = self.encoder_cnn.fc(features * encoder_hidden)
-        # result = nn.functional.upsample_bilinear(input=features, size=input_spatial_dim)
-        result = nn.functional.interpolate(
-                                           input=features, 
-                                           size=input_spatial_dim,
-                                           mode='bilinear',
-                                           align_corners=True
-                                           )
-
+        result = nn.functional.upsample_bilinear(input=features, size=input_spatial_dim)
+    
         return result

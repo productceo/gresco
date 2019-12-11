@@ -52,17 +52,17 @@ def main(mode=None):
     # model training
     if config.MODE == 1:
         config.print()
-        print('\nstart training...\n')
+        # print('\nstart training...\n')
         model.train()
 
     # model test
     elif config.MODE == 2:
-        print('\nstart testing...\n')
+        # print('\nstart testing...\n')
         model.test()
 
     # eval mode
     else:
-        print('\nstart eval...\n')
+        # print('\nstart eval...\n')
         model.eval()
 
 

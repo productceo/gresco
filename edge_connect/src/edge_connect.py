@@ -86,12 +86,12 @@ class EdgeConnect():
         total = len(self.train_dataset)
 
         if total == 0:
-            print('No training data was provided! Check \'TRAIN_FLIST\' value in the configuration file.')
+            # print('No training data was provided! Check \'TRAIN_FLIST\' value in the configuration file.')
             return
 
         while(keep_training):
             epoch += 1
-            print('\n\nTraining epoch: %d' % epoch)
+            # print('\n\nTraining epoch: %d' % epoch)
 
             progbar = Progbar(total, width=20, stateful_metrics=['epoch', 'iter'])
 
@@ -201,14 +201,14 @@ class EdgeConnect():
 
                 # evaluate model at checkpoints
                 if self.config.EVAL_INTERVAL and iteration % self.config.EVAL_INTERVAL == 0:
-                    print('\nstart eval...\n')
+                    # print('\nstart eval...\n')
                     self.eval()
 
                 # save model at checkpoints
                 if self.config.SAVE_INTERVAL and iteration % self.config.SAVE_INTERVAL == 0:
                     self.save()
 
-        print('\nEnd training....')
+        # print('\nEnd training....')
 
     def eval(self):
         val_loader = DataLoader(
@@ -329,7 +329,7 @@ class EdgeConnect():
 
             output = self.postprocess(outputs_merged)[0]
             path = os.path.join(self.results_path, name)
-            print(index, name)
+            # print(index, name)
 
             imsave(output, path)
 
@@ -341,7 +341,7 @@ class EdgeConnect():
                 imsave(edges, os.path.join(self.results_path, fname + '_edge.' + fext))
                 imsave(masked, os.path.join(self.results_path, fname + '_masked.' + fext))
 
-        print('\nEnd test....')
+        # print('\nEnd test....')
 
     def sample(self, it=None):
         # do not sample when validation set is empty
@@ -398,7 +398,7 @@ class EdgeConnect():
         path = os.path.join(self.samples_path, self.model_name)
         name = os.path.join(path, str(iteration).zfill(5) + ".png")
         create_dir(path)
-        print('\nsaving sample ' + name)
+        # print('\nsaving sample ' + name)
         images.save(name)
 
     def log(self, logs):
